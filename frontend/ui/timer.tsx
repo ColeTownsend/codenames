@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 function getTimeRemaining(endTime: number) {
   const diff = endTime - Date.now();
@@ -18,12 +18,12 @@ interface TimerProps {
   freezeTimer: boolean;
 }
 
-const Timer: React.FunctionComponent<TimerProps> = ({
+const Timer = ({
   roundStartedAt,
   timerDurationMs,
   handleExpiration,
   freezeTimer = false,
-}) => {
+}: TimerProps) => {
   const [timeRemaining, setTimeRemaining] = React.useState(undefined);
   const endTime = new Date(roundStartedAt).getTime() + timerDurationMs + 1000;
 

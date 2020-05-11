@@ -1,5 +1,5 @@
-import * as React from 'react';
-import Toggle from '~/ui/toggle';
+import React from 'react';
+import Toggle from './toggle';
 
 interface ToggleSetProps {
   toggle: {
@@ -11,11 +11,7 @@ interface ToggleSetProps {
   handleToggle: any;
 }
 
-const ToggleSet: React.FunctionalComponent<ToggleSetProps> = ({
-  toggle,
-  values,
-  handleToggle,
-}) => {
+const ToggleSet = ({ toggle, values, handleToggle }: ToggleSetProps) => {
   return (
     <div className="toggle-set" key={toggle.setting}>
       <div className="settings-label">
@@ -23,9 +19,7 @@ const ToggleSet: React.FunctionalComponent<ToggleSetProps> = ({
         <span className={'toggle-state'}>
           {values[toggle.setting] ? 'ON' : 'OFF'}
         </span>
-        <div className="settings-desc">
-          {toggle.desc}
-        </div>
+        <div className="settings-desc">{toggle.desc}</div>
       </div>
       <Toggle
         state={values[toggle.setting]}

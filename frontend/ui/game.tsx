@@ -1,16 +1,49 @@
 import * as React from 'react';
-import { Settings, SettingsButton, SettingsPanel } from '~/ui/settings';
-import Timer from '~/ui/timer';
+import { Settings, SettingsButton, SettingsPanel } from './settings';
+import Timer from './timer';
 
-// TODO: remove jquery dependency
-// https://stackoverflow.com/questions/47968529/how-do-i-use-jquery-and-jquery-ui-with-parcel-bundler
-let jquery = require('jquery');
-window.$ = window.jQuery = jquery;
+async function postData(url = '', data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    redirect: 'follow',
+    referrerPolicy: 'no-referrer',
+    body: JSON.stringify(data),
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
 
-const defaultFavicon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA8SURBVHgB7dHBDQAgCAPA1oVkBWdzPR84kW4AD0LCg36bXJqUcLL2eVY/EEwDFQBeEfPnqUpkLmigAvABK38Grs5TfaMAAAAASUVORK5CYII=';
-const blueTurnFavicon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAmSURBVHgB7cxBAQAABATBo5ls6ulEiPt47ASYqJ6VIWUiICD4Ehyi7wKv/xtOewAAAABJRU5ErkJggg==';
-const redTurnFavicon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAmSURBVHgB7cwxAQAACMOwgaL5d4EiELGHoxGQGnsVaIUICAi+BAci2gJQFUhklQAAAABJRU5ErkJggg==';
-export class Game extends React.Component {
+const defaultFavicon =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAA8SURBVHgB7dHBDQAgCAPA1oVkBWdzPR84kW4AD0LCg36bXJqUcLL2eVY/EEwDFQBeEfPnqUpkLmigAvABK38Grs5TfaMAAAAASUVORK5CYII=';
+const blueTurnFavicon =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAmSURBVHgB7cxBAQAABATBo5ls6ulEiPt47ASYqJ6VIWUiICD4Ehyi7wKv/xtOewAAAABJRU5ErkJggg==';
+const redTurnFavicon =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAmSURBVHgB7cwxAQAACMOwgaL5d4EiELGHoxGQGnsVaIUICAi+BAci2gJQFUhklQAAAABJRU5ErkJggg==';
+
+interface GameProps {
+  gameID: string;
+}
+
+interface GameState {
+  game: any;
+  mounted: boolean;
+  mode: string;
+  codemaster: boolean;
+  settings: {
+    darkMode: boolean;
+    fullscreen: boolean;
+    colorBlind: boolean;
+    spymasterMayGuess: boolean;
+  };
+}
+
+export class Game extends React.Component<GameProps, GameState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -51,7 +84,7 @@ export class Game extends React.Component {
 
   public componentWillUnmount() {
     window.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    document.getElementById("favicon").setAttribute("href", defaultFavicon);
+    document.getElementById('favicon').setAttribute('href', defaultFavicon);
     this.setState({ mounted: false });
   }
 
@@ -76,9 +109,14 @@ export class Game extends React.Component {
       prevState?.game?.state_id !== this.state.game?.state_id
     ) {
       if (this.state.game?.winning_team) {
-        document.getElementById("favicon").setAttribute("href", defaultFavicon);
+        document.getElementById('favicon').setAttribute('href', defaultFavicon);
       } else {
-        document.getElementById("favicon").setAttribute("href", this.currentTeam() === 'blue' ? blueTurnFavicon : redTurnFavicon);
+        document
+          .getElementById('favicon')
+          .setAttribute(
+            'href',
+            this.currentTeam() === 'blue' ? blueTurnFavicon : redTurnFavicon
+          );
       }
     }
   }
@@ -93,25 +131,18 @@ export class Game extends React.Component {
       state_id = this.state.game.state_id;
     }
 
-    const body = { game_id: this.props.gameID, state_id: state_id };
-    $.ajax({
-      url: '/game-state',
-      type: 'POST',
-      data: JSON.stringify(body),
-      contentType: 'application/json; charset=utf-8',
-      dataType: 'json',
-      success: data => {
+    postData('/game-state', { game_id: this.props.gameID, state_id: state_id })
+      .then((data) => {
         if (this.state.game && data.created_at != this.state.game.created_at) {
           this.setState({ codemaster: false });
         }
         this.setState({ game: data });
-      },
-      complete: () => {
+      })
+      .then(() => {
         setTimeout(() => {
           this.refresh();
         }, 2000);
-      },
-    });
+      });
   }
 
   public toggleRole(e, role) {
@@ -130,16 +161,12 @@ export class Game extends React.Component {
     if (this.state.game.winning_team) {
       return; // ignore if game is over
     }
-    $.post(
-      '/guess',
-      JSON.stringify({
-        game_id: this.state.game.id,
-        index: idx,
-      }),
-      g => {
-        this.setState({ game: g });
-      }
-    );
+    postData('/guess', {
+      game_id: this.state.game.id,
+      index: idx,
+    }).then((data) => {
+      this.setState({ game: data });
+    });
   }
 
   public currentTeam() {
@@ -163,16 +190,12 @@ export class Game extends React.Component {
   }
 
   public endTurn() {
-    $.post(
-      '/end-turn',
-      JSON.stringify({
-        game_id: this.state.game.id,
-        current_round: this.state.game.round,
-      }),
-      (g) => {
-        this.setState({ game: g });
-      }
-    );
+    postData('/end-turn', {
+      game_id: this.state.game.id,
+      current_round: this.state.game.round,
+    }).then((data) => {
+      this.setState({ game: data });
+    });
   }
 
   public nextGame(e) {
@@ -184,18 +207,14 @@ export class Game extends React.Component {
     if (!allowNextGame) {
       return;
     }
-    $.post(
-      '/next-game',
-      JSON.stringify({
-        game_id: this.state.game.id,
-        word_set: this.state.game.word_set,
-        create_new: true,
-        timer_duration_ms: this.state.game.timer_duration_ms,
-      }),
-      g => {
-        this.setState({ game: g, codemaster: false });
-      }
-    );
+    postData('/next-game', {
+      game_id: this.state.game.id,
+      word_set: this.state.game.word_set,
+      create_new: true,
+      timer_duration_ms: this.state.game.timer_duration_ms,
+    }).then((data) => {
+      this.setState({ game: data, codemaster: false });
+    });
   }
 
   public toggleSettingsView(e) {
@@ -226,8 +245,8 @@ export class Game extends React.Component {
     if (this.state.mode == 'settings') {
       return (
         <SettingsPanel
-          toggleView={e => this.toggleSettingsView(e)}
-          toggle={(e, setting) => this.toggleSetting(e, setting)}
+          toggleView={(e) => this.toggleSettingsView(e)}
+          toggleAction={(e, setting) => this.toggleSetting(e, setting)}
           values={this.state.settings}
         />
       );
@@ -238,7 +257,7 @@ export class Game extends React.Component {
       statusClass = this.state.game.winning_team + ' win';
       status = this.state.game.winning_team + ' wins!';
     } else {
-      statusClass = this.currentTeam()+'-turn';
+      statusClass = this.currentTeam() + '-turn';
       status = this.currentTeam() + "'s turn";
     }
 
@@ -246,7 +265,7 @@ export class Game extends React.Component {
     if (!this.state.game.winning_team && !this.state.codemaster) {
       endTurnButton = (
         <div id="end-turn-cont">
-          <button onClick={e => this.endTurn(e)} id="end-turn-btn">
+          <button onClick={() => this.endTurn()} id="end-turn-btn">
             End {this.currentTeam()}&#39;s turn
           </button>
         </div>
@@ -276,7 +295,7 @@ export class Game extends React.Component {
           roundStartedAt={this.state.game.round_started_at}
           timerDurationMs={this.state.game.timer_duration_ms}
           handleExpiration={() => {
-              this.state.game.enforce_timer && this.endTurn();
+            this.state.game.enforce_timer && this.endTurn();
           }}
           freezeTimer={!!this.state.game.winning_team}
         />
@@ -310,18 +329,20 @@ export class Game extends React.Component {
           </div>
           {endTurnButton}
         </div>
-        <div className={"board " + statusClass}>
-          {this.state.game.words.map((w, idx) => (
+        <div className={'board ' + statusClass}>
+          {this.state.game.words.map((w: string, idx: number) => (
             <div
               key={idx}
               className={
                 'cell ' +
                 this.state.game.layout[idx] +
                 ' ' +
-                (this.state.codemaster && !this.state.settings.spymasterMayGuess ? 'disabled ' : '') +
+                (this.state.codemaster && !this.state.settings.spymasterMayGuess
+                  ? 'disabled '
+                  : '') +
                 (this.state.game.revealed[idx] ? 'revealed' : 'hidden-word')
               }
-              onClick={e => this.guess(e, idx, w)}
+              onClick={(e) => this.guess(e, idx)}
             >
               <span className="word">{w}</span>
             </div>
@@ -334,27 +355,31 @@ export class Game extends React.Component {
           }
         >
           <SettingsButton
-            onClick={e => {
+            onClick={(e) => {
               this.toggleSettingsView(e);
             }}
           />
           <button
-            onClick={e => this.toggleRole(e, 'player')}
+            onClick={(e) => this.toggleRole(e, 'player')}
             className="player"
           >
             Player
           </button>
           <button
-            onClick={e => this.toggleRole(e, 'codemaster')}
+            onClick={(e) => this.toggleRole(e, 'codemaster')}
             className="codemaster"
           >
             Spymaster
           </button>
-          <button onClick={e => this.nextGame(e)} id="next-game-btn">
+          <button onClick={(e) => this.nextGame(e)} id="next-game-btn">
             Next game
           </button>
         </form>
-        <div id="coffee"><a href="https://www.buymeacoffee.com/jbowens" target="_blank">Buy the developer a coffee.</a></div>
+        <div id="coffee">
+          <a href="https://www.buymeacoffee.com/jbowens" target="_blank">
+            Buy the developer a coffee.
+          </a>
+        </div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import ToggleSet from '~/ui/toggle-set';
-import Toggle from '~/ui/toggle';
+import ToggleSet from './toggle-set';
+import Toggle from './toggle';
 
 interface TimerSettingsProps {
   timer: [number, number];
@@ -9,12 +9,12 @@ interface TimerSettingsProps {
   setEnforceTimerEnabled: (newValue: boolean) => void;
 }
 
-const TimerSettings: React.FunctionalComponent<TimerSettingsProps> = ({
+const TimerSettings = ({
   timer,
   setTimer,
   enforceTimerEnabled,
   setEnforceTimerEnabled,
-}) => {
+}: TimerSettingsProps) => {
   const [minutes, seconds] = timer || [];
   return (
     <div id="timer-settings">
@@ -22,7 +22,7 @@ const TimerSettings: React.FunctionalComponent<TimerSettingsProps> = ({
         toggle={{
           name: 'Timer',
           setting: 'timer',
-          desc: 'If enabled a timer will countdown each team\'s turn.'
+          desc: "If enabled a timer will countdown each team's turn.",
         }}
         values={{ timer }}
         handleToggle={() => {

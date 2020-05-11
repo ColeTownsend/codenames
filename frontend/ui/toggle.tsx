@@ -1,14 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 
 interface ToggleProps {
   state: boolean;
   handleToggle: any;
 }
 
-const Toggle: React.FunctionalComponent<ToggleProps> = ({
-  state,
-  handleToggle,
-}) => {
+const Toggle = ({ state, handleToggle }: ToggleProps) => {
   return (
     <div
       onClick={handleToggle}
