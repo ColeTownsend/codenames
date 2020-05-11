@@ -75,6 +75,7 @@ export class Game extends React.Component<GameProps, GameState> {
     }
   }
 
+  // @ts-ignore
   public componentDidMount(prevProps, prevState) {
     window.addEventListener('keydown', this.handleKeyDown.bind(this));
     this.setDarkMode(prevProps, prevState);

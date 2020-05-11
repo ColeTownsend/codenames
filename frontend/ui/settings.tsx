@@ -96,7 +96,6 @@ export function SettingsPanel({ toggleAction, values, toggleView }) {
         <div className="toggles">
           {settingToggles.map((toggle) => (
             <ToggleSet
-              key={toggle.name}
               values={values}
               toggle={toggle}
               handleToggle={toggleAction}

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import CustomWords from './custom_words';
 import { postData } from '../fetch';
 import WordSetToggle from './wordset_toggle';
